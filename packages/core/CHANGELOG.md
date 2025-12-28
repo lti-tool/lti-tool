@@ -1,5 +1,11 @@
 # @lti-tool/core
 
+## 0.13.0
+
+### Minor Changes
+
+- d5a2793: Pass through keyId to utilize in kid when signing the Deep Linking JWT
+
 ## 0.12.2
 
 ### Patch Changes
