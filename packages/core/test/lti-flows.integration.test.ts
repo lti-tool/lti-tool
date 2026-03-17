@@ -1,4 +1,4 @@
-import { createRemoteJWKSet, generateKeyPair } from 'jose';
+import { createRemoteJWKSet, generateKeyPair, jwtVerify } from 'jose';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { LTIConfig, LTIStorage } from '../src/interfaces/index.js';
@@ -12,6 +12,7 @@ vi.mock('jose', async () => {
   return {
     ...actual,
     createRemoteJWKSet: vi.fn(),
+    jwtVerify: vi.fn(actual.jwtVerify),
   };
 });
 
@@ -183,6 +184,46 @@ describe('LTI Integration Tests', () => {
   });
 
   describe('JWT Verification', () => {
+    it('refreshes JWKS and retries once on ERR_JWKS_NO_MATCHING_KEY', async () => {
+      const ltiPayload = createMockLTIPayload({
+        nonce: 'test-nonce',
+      });
+      const idTokenPayload = {
+        iss: 'https://platform.example.com',
+        aud: 'client123',
+        nonce: 'test-nonce',
+        'https://purl.imsglobal.org/spec/lti/claim/deployment_id': 'deployment1',
+      };
+      const idToken = [
+        Buffer.from(JSON.stringify({ alg: 'RS256', kid: 'rotated-kid' })).toString(
+          'base64url',
+        ),
+        Buffer.from(JSON.stringify(idTokenPayload)).toString('base64url'),
+        'signature',
+      ].join('.');
+
+      const staleJwks = vi.fn();
+      const freshJwks = vi.fn();
+      vi.mocked(createRemoteJWKSet)
+        .mockReturnValueOnce(staleJwks as any)
+        .mockReturnValueOnce(freshJwks as any);
+
+      const kidMissError = Object.assign(new Error('No matching key in JWKS'), {
+        code: 'ERR_JWKS_NO_MATCHING_KEY',
+      });
+      vi.mocked(jwtVerify)
+        .mockRejectedValueOnce(kidMissError as any)
+        .mockResolvedValueOnce({ payload: ltiPayload } as any)
+        .mockResolvedValueOnce({ payload: { nonce: 'test-nonce' } } as any);
+
+      const validated = await ltiTool.verifyLaunch(idToken, 'state-token');
+
+      expect(validated).toEqual(ltiPayload);
+      expect(createRemoteJWKSet).toHaveBeenCalledTimes(2);
+      expect(jwtVerify).toHaveBeenCalledTimes(3);
+      expect(mockStorage.validateNonce).toHaveBeenCalledWith('test-nonce');
+    });
+
     it('successfully verifies valid LTI launch JWT', async () => {
       // Create a valid LTI JWT using the platform key
       const ltiPayload = createMockLTIPayload({

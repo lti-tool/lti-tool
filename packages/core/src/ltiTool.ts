@@ -208,12 +208,10 @@ export class LTITool {
       );
 
       // 3. Verify LMS JWT
-      let jwks = this.jwksCache.get(launchConfig.jwksUrl);
-      if (!jwks) {
-        jwks = createRemoteJWKSet(new URL(launchConfig.jwksUrl));
-        this.jwksCache.set(launchConfig.jwksUrl, jwks);
-      }
-      const { payload } = await jwtVerify(validatedParams.idToken, jwks);
+      const payload = await this.verifyLaunchJwtWithCachedJwks(
+        validatedParams.idToken,
+        launchConfig.jwksUrl,
+      );
 
       // 4. Verify our state JWT
       const { payload: stateData } = await jwtVerify(
@@ -245,6 +243,37 @@ export class LTITool {
       return validated;
     } catch (error) {
       throw new Error(`[LTI] Launch verification failed: ${formatError(error)}`);
+    }
+  }
+
+  private getOrCreateJwks(jwksUrl: string): ReturnType<typeof createRemoteJWKSet> {
+    let jwks = this.jwksCache.get(jwksUrl);
+    if (!jwks) {
+      jwks = createRemoteJWKSet(new URL(jwksUrl));
+      this.jwksCache.set(jwksUrl, jwks);
+    }
+    return jwks;
+  }
+
+  private async verifyLaunchJwtWithCachedJwks(
+    idToken: string,
+    jwksUrl: string,
+  ): Promise<LTI13JwtPayload> {
+    const jwks = this.getOrCreateJwks(jwksUrl);
+
+    try {
+      const { payload } = await jwtVerify(idToken, jwks);
+      return payload as LTI13JwtPayload;
+    } catch (error) {
+      if ((error as { code?: string }).code !== 'ERR_JWKS_NO_MATCHING_KEY') {
+        throw error;
+      }
+
+      // Key rotation fallback: evict cached JWKS and retry verification once.
+      this.jwksCache.delete(jwksUrl);
+      const refreshedJwks = this.getOrCreateJwks(jwksUrl);
+      const { payload } = await jwtVerify(idToken, refreshedJwks);
+      return payload as LTI13JwtPayload;
     }
   }
 
