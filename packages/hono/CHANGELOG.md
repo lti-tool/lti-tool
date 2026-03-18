@@ -1,5 +1,11 @@
 # @lti-tool/hono
 
+## 1.0.5
+
+### Patch Changes
+
+- 8e1efb1: Sakai compatibility — @ottenhoff 🎉 #82
+
 ## 1.0.4
 
 ### Patch Changes

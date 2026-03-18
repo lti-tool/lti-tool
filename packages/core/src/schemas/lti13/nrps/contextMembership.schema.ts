@@ -21,8 +21,8 @@ export const NRPSMemberResponseSchema = z.object({
  */
 export const NRPSContextResponseSchema = z.object({
   id: z.string(),
-  label: z.string(),
-  title: z.string(),
+  label: z.string().optional(),
+  title: z.string().optional(),
 });
 
 /**

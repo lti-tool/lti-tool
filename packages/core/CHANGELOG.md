@@ -1,5 +1,11 @@
 # @lti-tool/core
 
+## 1.0.6
+
+### Patch Changes
+
+- a5404db: Sakai compatibility — @ottenhoff 🎉 #83
+
 ## 1.0.5
 
 ### Patch Changes

@@ -12,16 +12,27 @@ import { getLTITool } from '../../ltiTool';
 export function loginRouteHandler(config: LTIConfig): Handler {
   return async (c) => {
     try {
-      const formData = await c.req.formData();
-
-      const params = LTI13LoginSchema.parse({
-        iss: formData.get('iss'),
-        login_hint: formData.get('login_hint'),
-        target_link_uri: formData.get('target_link_uri'),
-        client_id: formData.get('client_id'),
-        lti_deployment_id: formData.get('lti_deployment_id'),
-        lti_message_hint: formData.get('lti_message_hint') || undefined,
-      });
+      let params;
+      if (c.req.method === 'GET') {
+        params = LTI13LoginSchema.parse({
+          iss: c.req.query('iss'),
+          login_hint: c.req.query('login_hint'),
+          target_link_uri: c.req.query('target_link_uri'),
+          client_id: c.req.query('client_id'),
+          lti_deployment_id: c.req.query('lti_deployment_id'),
+          lti_message_hint: c.req.query('lti_message_hint') || undefined,
+        });
+      } else {
+        const formData = await c.req.formData();
+        params = LTI13LoginSchema.parse({
+          iss: formData.get('iss'),
+          login_hint: formData.get('login_hint'),
+          target_link_uri: formData.get('target_link_uri'),
+          client_id: formData.get('client_id'),
+          lti_deployment_id: formData.get('lti_deployment_id'),
+          lti_message_hint: formData.get('lti_message_hint') || undefined,
+        });
+      }
 
       const ltiTool = getLTITool(config);
       const baseUrl = new URL(c.req.url).origin;

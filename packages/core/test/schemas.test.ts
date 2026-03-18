@@ -9,6 +9,7 @@ import {
   VerifyLaunchParamsSchema,
 } from '../src/schemas/index.js';
 import { ScoreSubmissionSchema } from '../src/schemas/lti13/ags/scoreSubmission.schema.js';
+import { NRPSContextMembershipResponseSchema } from '../src/schemas/lti13/nrps/contextMembership.schema.js';
 
 describe('Schema Validation Tests', () => {
   describe('LTI13LoginSchema', () => {
@@ -276,6 +277,27 @@ describe('Schema Validation Tests', () => {
       };
 
       expect(() => LTI13LaunchSchema.parse(validLaunch)).not.toThrow();
+    });
+  });
+
+  describe('NRPSContextMembershipResponseSchema', () => {
+    it('accepts Sakai-like context objects without label/title', () => {
+      const payload = {
+        id: 'https://platform.example.com/memberships/ctx-1',
+        context: {
+          id: 'ctx-1',
+        },
+        members: [
+          {
+            status: 'Active',
+            name: 'Jane Doe',
+            user_id: 'user-1',
+            roles: ['http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'],
+          },
+        ],
+      };
+
+      expect(() => NRPSContextMembershipResponseSchema.parse(payload)).not.toThrow();
     });
   });
 });

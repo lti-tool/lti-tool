@@ -38,7 +38,8 @@
       "files": ["**/*.test.ts", "**/*.spec.ts"],
       "rules": {
         "max-lines-per-function": "off",
-        "typescript/no-explicit-any": "off"
+        "typescript/no-explicit-any": "off",
+        "typescript/explicit-function-return-type": "off"
       }
     }
   ]
