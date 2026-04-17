@@ -1,5 +1,16 @@
 # @lti-tool/memory
 
+## 1.1.0
+
+### Minor Changes
+
+- 850ba01: Add platform profile system for LTI dynamic registration with Canvas and Sakai support, fix single-service form submissions from HTML. -- @ottenhoff 🎉 #100
+
+### Patch Changes
+
+- Updated dependencies [850ba01]
+  - @lti-tool/core@1.1.0
+
 ## 1.0.4
 
 ### Patch Changes
