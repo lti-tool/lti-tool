@@ -40,9 +40,7 @@ export function completeDynamicRegistrationRouteHandler(config: LTIConfig): Hand
       const normalizedFormData = {
         ...formData,
         services:
-          typeof formData.services === 'string'
-            ? [formData.services]
-            : formData.services,
+          typeof formData.services === 'string' ? [formData.services] : formData.services,
       };
       const validated = DynamicRegistrationFormSchema.parse(normalizedFormData);
 
