@@ -99,7 +99,7 @@ describe('DynamicRegistrationService', () => {
     );
 
     global.fetch = vi.fn(
-      async () =>
+      () =>
         new Response(
           JSON.stringify(
             createOpenIdConfiguration({
@@ -158,7 +158,7 @@ describe('DynamicRegistrationService', () => {
     (storage.addDeployment as any).mockResolvedValue('deployment-record-id');
 
     global.fetch = vi.fn(
-      async () =>
+      () =>
         new Response(
           JSON.stringify({
             ...createRegistrationResponse('sakai-client-id'),
@@ -227,7 +227,7 @@ describe('DynamicRegistrationService', () => {
     (storage.addDeployment as any).mockResolvedValue('deployment-record-id');
 
     global.fetch = vi.fn(
-      async () =>
+      () =>
         new Response(
           JSON.stringify(createRegistrationResponse('brightspace-client-id')),
           {
@@ -296,7 +296,7 @@ describe('DynamicRegistrationService', () => {
     (storage.addDeployment as any).mockResolvedValue('deployment-record-id');
 
     global.fetch = vi.fn(
-      async () =>
+      () =>
         new Response(JSON.stringify(createRegistrationResponse('canvas-client-id')), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
