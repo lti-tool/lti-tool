@@ -19,7 +19,7 @@ import {
   undefinedLaunchConfigValue,
   undefinedSessionValue,
 } from './cacheConfig.js';
-import * as schema from './db/schema/index.js';
+import { createLtiSchema } from './db/schema/schemaFactory.js';
 import type { PostgresStorageConfig } from './interfaces/postgresStorageConfig.js';
 
 /**
@@ -28,10 +28,13 @@ import type { PostgresStorageConfig } from './interfaces/postgresStorageConfig.j
  * Stores clients, deployments, sessions, and nonces in PostgreSQL with LRU caching.
  * Uses Drizzle ORM for type-safe database operations.
  */
+type LtiSchema = ReturnType<typeof createLtiSchema>;
+
 export class PostgresStorage implements LTIStorage {
   private logger: Logger;
-  private db: PostgresJsDatabase<typeof schema>;
+  private db: PostgresJsDatabase<LtiSchema>;
   private sql: postgres.Sql;
+  private schema: LtiSchema;
   private nonceExpirationSeconds: number;
 
   constructor(config: PostgresStorageConfig) {
@@ -65,8 +68,11 @@ export class PostgresStorage implements LTIStorage {
       idle_timeout: config.poolOptions?.idleTimeout ?? 20,
     });
 
+    // Build schema (with optional custom PostgreSQL schema name)
+    this.schema = createLtiSchema(config.schema);
+
     // Initialize Drizzle
-    this.db = drizzle(this.sql, { schema });
+    this.db = drizzle(this.sql, { schema: this.schema });
 
     this.logger.debug(
       {
@@ -81,7 +87,7 @@ export class PostgresStorage implements LTIStorage {
   async listClients(): Promise<Omit<LTIClient, 'deployments'>[]> {
     this.logger.debug('listing all clients');
 
-    const clients = await this.db.select().from(schema.clientsTable);
+    const clients = await this.db.select().from(this.schema.clientsTable);
 
     this.logger.debug({ count: clients.length }, 'clients found');
     return clients;
@@ -92,8 +98,8 @@ export class PostgresStorage implements LTIStorage {
 
     const [client] = await this.db
       .select()
-      .from(schema.clientsTable)
-      .where(eq(schema.clientsTable.id, clientId))
+      .from(this.schema.clientsTable)
+      .where(eq(this.schema.clientsTable.id, clientId))
       .limit(1);
 
     if (!client) {
@@ -104,8 +110,8 @@ export class PostgresStorage implements LTIStorage {
     // Get all deployments for this client
     const deploymentsRaw = await this.db
       .select()
-      .from(schema.deploymentsTable)
-      .where(eq(schema.deploymentsTable.clientId, clientId));
+      .from(this.schema.deploymentsTable)
+      .where(eq(this.schema.deploymentsTable.clientId, clientId));
 
     // Convert null to undefined for optional fields
     const deployments = deploymentsRaw.map((d) => ({
@@ -127,9 +133,9 @@ export class PostgresStorage implements LTIStorage {
     const { deployments: _clientDeployments, ...clientWithoutDeployments } = client;
 
     const [inserted] = await this.db
-      .insert(schema.clientsTable)
+      .insert(this.schema.clientsTable)
       .values(clientWithoutDeployments)
-      .returning({ id: schema.clientsTable.id });
+      .returning({ id: this.schema.clientsTable.id });
 
     this.logger.debug({ clientId: inserted.id }, 'client added');
     return inserted.id;
@@ -162,9 +168,9 @@ export class PostgresStorage implements LTIStorage {
 
     // Update the client
     await this.db
-      .update(schema.clientsTable)
+      .update(this.schema.clientsTable)
       .set(clientWithoutDeployments)
-      .where(eq(schema.clientsTable.id, clientId));
+      .where(eq(this.schema.clientsTable.id, clientId));
 
     // Clear and rebuild launch config cache
     await this.updateClientLaunchConfigs(clientId);
@@ -192,13 +198,15 @@ export class PostgresStorage implements LTIStorage {
     await this.db.transaction(async (tx) => {
       // Delete all deployments first (child records)
       await tx
-        .delete(schema.deploymentsTable)
-        .where(eq(schema.deploymentsTable.clientId, clientId));
+        .delete(this.schema.deploymentsTable)
+        .where(eq(this.schema.deploymentsTable.clientId, clientId));
 
       this.logger.debug({ clientId }, 'deployments deleted');
 
       // Then delete the client (parent record)
-      await tx.delete(schema.clientsTable).where(eq(schema.clientsTable.id, clientId));
+      await tx
+        .delete(this.schema.clientsTable)
+        .where(eq(this.schema.clientsTable.id, clientId));
 
       this.logger.debug({ clientId }, 'client deleted');
     });
@@ -232,8 +240,8 @@ export class PostgresStorage implements LTIStorage {
 
     const deploymentsRaw = await this.db
       .select()
-      .from(schema.deploymentsTable)
-      .where(eq(schema.deploymentsTable.clientId, clientId));
+      .from(this.schema.deploymentsTable)
+      .where(eq(this.schema.deploymentsTable.clientId, clientId));
 
     // Convert null to undefined for optional fields
     const deployments = deploymentsRaw.map((d) => ({
@@ -254,11 +262,11 @@ export class PostgresStorage implements LTIStorage {
 
     const [deployment] = await this.db
       .select()
-      .from(schema.deploymentsTable)
+      .from(this.schema.deploymentsTable)
       .where(
         and(
-          eq(schema.deploymentsTable.clientId, clientId),
-          eq(schema.deploymentsTable.id, deploymentId),
+          eq(this.schema.deploymentsTable.clientId, clientId),
+          eq(this.schema.deploymentsTable.id, deploymentId),
         ),
       )
       .limit(1);
@@ -283,12 +291,12 @@ export class PostgresStorage implements LTIStorage {
     this.logger.info({ clientId, deployment }, 'adding deployment');
 
     const [inserted] = await this.db
-      .insert(schema.deploymentsTable)
+      .insert(this.schema.deploymentsTable)
       .values({
         clientId,
         ...deployment,
       })
-      .returning({ id: schema.deploymentsTable.id });
+      .returning({ id: this.schema.deploymentsTable.id });
 
     this.logger.debug({ deploymentInternalId: inserted.id }, 'deployment added');
     return inserted.id;
@@ -319,9 +327,9 @@ export class PostgresStorage implements LTIStorage {
 
     // Update deployment data
     await this.db
-      .update(schema.deploymentsTable)
+      .update(this.schema.deploymentsTable)
       .set(deployment)
-      .where(eq(schema.deploymentsTable.id, deploymentId));
+      .where(eq(this.schema.deploymentsTable.id, deploymentId));
 
     this.logger.debug({ deploymentId }, 'deployment updated');
   }
@@ -343,8 +351,8 @@ export class PostgresStorage implements LTIStorage {
     }
 
     await this.db
-      .delete(schema.deploymentsTable)
-      .where(eq(schema.deploymentsTable.id, deploymentId));
+      .delete(this.schema.deploymentsTable)
+      .where(eq(this.schema.deploymentsTable.id, deploymentId));
 
     this.logger.debug({ clientId, deploymentId }, 'deployment deleted');
   }
@@ -361,11 +369,11 @@ export class PostgresStorage implements LTIStorage {
     // 1. Check if nonce exists and is still valid (not expired)
     const [existing] = await this.db
       .select()
-      .from(schema.noncesTable)
+      .from(this.schema.noncesTable)
       .where(
         and(
-          eq(schema.noncesTable.nonce, nonce),
-          gt(schema.noncesTable.expiresAt, new Date()), // expiresAt > NOW()
+          eq(this.schema.noncesTable.nonce, nonce),
+          gt(this.schema.noncesTable.expiresAt, new Date()), // expiresAt > NOW()
         ),
       )
       .limit(1);
@@ -379,7 +387,7 @@ export class PostgresStorage implements LTIStorage {
     const expiresAt = new Date(Date.now() + this.nonceExpirationSeconds * 1000);
 
     try {
-      await this.db.insert(schema.noncesTable).values({ nonce, expiresAt });
+      await this.db.insert(this.schema.noncesTable).values({ nonce, expiresAt });
       return true;
     } catch (error) {
       // Duplicate key error (race condition - another request inserted same nonce)
@@ -408,11 +416,11 @@ export class PostgresStorage implements LTIStorage {
     // Query database
     const [sessionRecord] = await this.db
       .select()
-      .from(schema.sessionsTable)
+      .from(this.schema.sessionsTable)
       .where(
         and(
-          eq(schema.sessionsTable.id, sessionId),
-          gt(schema.sessionsTable.expiresAt, new Date()), // Not expired
+          eq(this.schema.sessionsTable.id, sessionId),
+          gt(this.schema.sessionsTable.expiresAt, new Date()), // Not expired
         ),
       )
       .limit(1);
@@ -438,7 +446,7 @@ export class PostgresStorage implements LTIStorage {
     const expiresAt = new Date(Date.now() + SESSION_TTL * 1000);
     const { id, ...data } = session;
 
-    await this.db.insert(schema.sessionsTable).values({
+    await this.db.insert(this.schema.sessionsTable).values({
       id,
       data,
       expiresAt,
@@ -472,19 +480,19 @@ export class PostgresStorage implements LTIStorage {
     // Query for client and deployment
     const [result] = await this.db
       .select({
-        client: schema.clientsTable,
-        deployment: schema.deploymentsTable,
+        client: this.schema.clientsTable,
+        deployment: this.schema.deploymentsTable,
       })
-      .from(schema.clientsTable)
+      .from(this.schema.clientsTable)
       .innerJoin(
-        schema.deploymentsTable,
-        eq(schema.deploymentsTable.clientId, schema.clientsTable.id),
+        this.schema.deploymentsTable,
+        eq(this.schema.deploymentsTable.clientId, this.schema.clientsTable.id),
       )
       .where(
         and(
-          eq(schema.clientsTable.iss, iss),
-          eq(schema.clientsTable.clientId, clientId),
-          eq(schema.deploymentsTable.deploymentId, deploymentId),
+          eq(this.schema.clientsTable.iss, iss),
+          eq(this.schema.clientsTable.clientId, clientId),
+          eq(this.schema.deploymentsTable.deploymentId, deploymentId),
         ),
       )
       .limit(1);
@@ -532,7 +540,7 @@ export class PostgresStorage implements LTIStorage {
 
     const expiresAt = new Date(session.expiresAt);
 
-    await this.db.insert(schema.registrationSessionsTable).values({
+    await this.db.insert(this.schema.registrationSessionsTable).values({
       id: sessionId,
       data: session,
       expiresAt,
@@ -548,11 +556,11 @@ export class PostgresStorage implements LTIStorage {
 
     const [record] = await this.db
       .select()
-      .from(schema.registrationSessionsTable)
+      .from(this.schema.registrationSessionsTable)
       .where(
         and(
-          eq(schema.registrationSessionsTable.id, sessionId),
-          gt(schema.registrationSessionsTable.expiresAt, new Date()),
+          eq(this.schema.registrationSessionsTable.id, sessionId),
+          gt(this.schema.registrationSessionsTable.expiresAt, new Date()),
         ),
       )
       .limit(1);
@@ -569,8 +577,8 @@ export class PostgresStorage implements LTIStorage {
     this.logger.debug({ sessionId }, 'deleting registration session');
 
     await this.db
-      .delete(schema.registrationSessionsTable)
-      .where(eq(schema.registrationSessionsTable.id, sessionId));
+      .delete(this.schema.registrationSessionsTable)
+      .where(eq(this.schema.registrationSessionsTable.id, sessionId));
 
     this.logger.debug({ sessionId }, 'registration session deleted');
   }
@@ -592,21 +600,21 @@ export class PostgresStorage implements LTIStorage {
 
     // Delete expired nonces
     const noncesResult = await this.db
-      .delete(schema.noncesTable)
-      .where(lt(schema.noncesTable.expiresAt, now))
-      .returning({ nonce: schema.noncesTable.nonce });
+      .delete(this.schema.noncesTable)
+      .where(lt(this.schema.noncesTable.expiresAt, now))
+      .returning({ nonce: this.schema.noncesTable.nonce });
 
     // Delete expired sessions
     const sessionsResult = await this.db
-      .delete(schema.sessionsTable)
-      .where(lt(schema.sessionsTable.expiresAt, now))
-      .returning({ id: schema.sessionsTable.id });
+      .delete(this.schema.sessionsTable)
+      .where(lt(this.schema.sessionsTable.expiresAt, now))
+      .returning({ id: this.schema.sessionsTable.id });
 
     // Delete expired registration sessions
     const regSessionsResult = await this.db
-      .delete(schema.registrationSessionsTable)
-      .where(lt(schema.registrationSessionsTable.expiresAt, now))
-      .returning({ id: schema.registrationSessionsTable.id });
+      .delete(this.schema.registrationSessionsTable)
+      .where(lt(this.schema.registrationSessionsTable.expiresAt, now))
+      .returning({ id: this.schema.registrationSessionsTable.id });
 
     const result = {
       noncesDeleted: noncesResult.length,

@@ -1,5 +1,11 @@
-export * from './clients.schema.js';
-export * from './deployments.schema.js';
-export * from './nonces.schema.js';
-export * from './registrationSessions.schema.js';
-export * from './sessions.schema.js';
+import { createLtiSchema } from './schemaFactory.js';
+
+export { createLtiSchema };
+
+export const {
+  clientsTable,
+  deploymentsTable,
+  noncesTable,
+  sessionsTable,
+  registrationSessionsTable,
+} = createLtiSchema();

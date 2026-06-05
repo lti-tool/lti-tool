@@ -32,4 +32,9 @@ export interface PostgresStorageConfig {
    * Nonce expiration time in seconds (defaults to 600 = 10 minutes)
    */
   nonceExpirationSeconds?: number;
+  /**
+   * PostgreSQL schema name for LTI tables (e.g. 'lti', 'app').
+   * Defaults to the connection's search_path (typically 'public').
+   */
+  schema?: string;
 }
