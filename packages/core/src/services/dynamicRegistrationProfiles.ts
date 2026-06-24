@@ -1,3 +1,9 @@
+import {
+  LTI_CLAIM_PLATFORM_CONFIGURATION,
+  LTI_CLAIM_TOOL_CONFIGURATION,
+  LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
+  LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
+} from '../constants.js';
 import type {
   CanvasDynamicRegistrationConfig,
   DynamicRegistrationConfig,
@@ -30,7 +36,7 @@ function buildDefaultDeepLinkingMessage(
   toolName: string,
 ): LTIMessage {
   return {
-    type: 'LtiDeepLinkingRequest' as const,
+    type: LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
     target_link_uri: deepLinkingUri,
     label: toolName,
     placements: ['editor_button' as const],
@@ -44,7 +50,7 @@ function buildCanvasDeepLinkingMessages(
   placements: string[],
 ): LTIMessage[] {
   return placements.map((placement) => ({
-    type: 'LtiDeepLinkingRequest' as const,
+    type: LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
     target_link_uri: deepLinkingUri,
     label: toolName,
     placements: [placement],
@@ -61,7 +67,7 @@ function getCanvasConfig(
 const defaultDynamicRegistrationProfile: DynamicRegistrationProfile = {
   matches: () => true,
   buildMessages({ selectedServices, deepLinkingUri, toolName }) {
-    const messages: LTIMessage[] = [{ type: 'LtiResourceLinkRequest' as const }];
+    const messages: LTIMessage[] = [{ type: LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST }];
 
     if (selectedServices.includes('deep_linking')) {
       messages.push(buildDefaultDeepLinkingMessage(deepLinkingUri, toolName));
@@ -75,7 +81,7 @@ const canvasDynamicRegistrationProfile: DynamicRegistrationProfile = {
   matches(openIdConfiguration) {
     return (
       openIdConfiguration[
-        'https://purl.imsglobal.org/spec/lti-platform-configuration'
+        LTI_CLAIM_PLATFORM_CONFIGURATION
       ].product_family_code.toLowerCase() === 'canvas'
     );
   },
@@ -89,7 +95,7 @@ const canvasDynamicRegistrationProfile: DynamicRegistrationProfile = {
     const canvasConfig = getCanvasConfig(registrationConfig);
     const messages: LTIMessage[] = [
       {
-        type: 'LtiResourceLinkRequest' as const,
+        type: LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
         ...(canvasConfig?.resourceLinkPlacements?.length
           ? {
               label: toolName,
@@ -127,8 +133,8 @@ const canvasDynamicRegistrationProfile: DynamicRegistrationProfile = {
     return {
       ...payload,
       ...(canvasConfig.clientUri ? { client_uri: canvasConfig.clientUri } : {}),
-      'https://purl.imsglobal.org/spec/lti-tool-configuration': {
-        ...payload['https://purl.imsglobal.org/spec/lti-tool-configuration'],
+      [LTI_CLAIM_TOOL_CONFIGURATION]: {
+        ...payload[LTI_CLAIM_TOOL_CONFIGURATION],
         ...(canvasConfig.secondaryDomains?.length
           ? { secondary_domains: canvasConfig.secondaryDomains }
           : {}),

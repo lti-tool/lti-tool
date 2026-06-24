@@ -1,3 +1,15 @@
+import {
+  LTI_CLAIM_AGS_ENDPOINT,
+  LTI_CLAIM_CONTEXT,
+  LTI_CLAIM_CUSTOM,
+  LTI_CLAIM_DEEP_LINKING_SETTINGS,
+  LTI_CLAIM_DEPLOYMENT_ID,
+  LTI_CLAIM_NRPS_NAMES_ROLE_SERVICE,
+  LTI_CLAIM_RESOURCE_LINK,
+  LTI_CLAIM_ROLES,
+  LTI_CLAIM_TARGET_LINK_URI,
+  LTI_CLAIM_TOOL_PLATFORM,
+} from '../constants.js';
 import type { LTISession } from '../interfaces/ltiSession.js';
 import type { LTI13JwtPayload } from '../schemas/index.js';
 
@@ -22,20 +34,14 @@ export function createSession(
   lti13JwtPayload: LTI13JwtPayload,
   options: { clientId?: string } = {},
 ): LTISession {
-  const roles = lti13JwtPayload['https://purl.imsglobal.org/spec/lti/claim/roles'] || [];
-  const context = lti13JwtPayload['https://purl.imsglobal.org/spec/lti/claim/context'];
-  const platform =
-    lti13JwtPayload['https://purl.imsglobal.org/spec/lti/claim/tool_platform'];
-  const resourceLink =
-    lti13JwtPayload['https://purl.imsglobal.org/spec/lti/claim/resource_link'];
-  const customClaims =
-    lti13JwtPayload['https://purl.imsglobal.org/spec/lti/claim/custom'] || {};
-  const agsEndpoint =
-    lti13JwtPayload['https://purl.imsglobal.org/spec/lti-ags/claim/endpoint'];
-  const nrpsService =
-    lti13JwtPayload['https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice'];
-  const deepLinkingSettings =
-    lti13JwtPayload['https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings'];
+  const roles = lti13JwtPayload[LTI_CLAIM_ROLES] || [];
+  const context = lti13JwtPayload[LTI_CLAIM_CONTEXT];
+  const platform = lti13JwtPayload[LTI_CLAIM_TOOL_PLATFORM];
+  const resourceLink = lti13JwtPayload[LTI_CLAIM_RESOURCE_LINK];
+  const customClaims = lti13JwtPayload[LTI_CLAIM_CUSTOM] || {};
+  const agsEndpoint = lti13JwtPayload[LTI_CLAIM_AGS_ENDPOINT];
+  const nrpsService = lti13JwtPayload[LTI_CLAIM_NRPS_NAMES_ROLE_SERVICE];
+  const deepLinkingSettings = lti13JwtPayload[LTI_CLAIM_DEEP_LINKING_SETTINGS];
 
   const isInstructor = hasRole(roles, 'Instructor');
   const isStudent = hasRole(roles, 'Learner');
@@ -94,13 +100,11 @@ export function createSession(
     platform: {
       issuer: lti13JwtPayload.iss,
       clientId: getSessionClientId(lti13JwtPayload.aud, options.clientId),
-      deploymentId:
-        lti13JwtPayload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'],
+      deploymentId: lti13JwtPayload[LTI_CLAIM_DEPLOYMENT_ID],
       name: platform?.name || lti13JwtPayload.iss,
     },
     launch: {
-      target:
-        lti13JwtPayload['https://purl.imsglobal.org/spec/lti/claim/target_link_uri'],
+      target: lti13JwtPayload[LTI_CLAIM_TARGET_LINK_URI],
     },
     resourceLink: resourceLink
       ? {

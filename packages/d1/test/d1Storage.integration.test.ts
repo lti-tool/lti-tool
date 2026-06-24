@@ -3,11 +3,13 @@ import { readdir, readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type {
-  LTIClient,
-  LTIDeployment,
-  LTIDynamicRegistrationSession,
-  LTISession,
+import {
+  LTI_CLAIM_PLATFORM_CONFIGURATION,
+  LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
+  type LTIClient,
+  type LTIDeployment,
+  type LTIDynamicRegistrationSession,
+  type LTISession,
 } from '@lti-tool/core';
 import { Log, LogLevel, Miniflare } from 'miniflare';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -306,10 +308,10 @@ describe('D1Storage with Miniflare D1', () => {
           id_token_signing_alg_values_supported: ['RS256'],
           claims_supported: ['sub'],
           subject_types_supported: ['public'],
-          'https://purl.imsglobal.org/spec/lti-platform-configuration': {
+          [LTI_CLAIM_PLATFORM_CONFIGURATION]: {
             product_family_code: 'test',
             version: '1',
-            messages_supported: [{ type: 'LtiResourceLinkRequest' }],
+            messages_supported: [{ type: LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST }],
           },
         },
         registrationToken: 'registration-token',

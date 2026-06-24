@@ -1,5 +1,6 @@
 import type { BaseLogger } from 'pino';
 
+import { LTI_NRPS_SCOPE_CONTEXT_MEMBERSHIP_READONLY } from '../constants.js';
 import type { LTISession } from '../interfaces/ltiSession.js';
 import type { LTIStorage } from '../interfaces/ltiStorage.js';
 import { getValidLaunchConfig } from '../utils/launchConfigValidation.js';
@@ -49,7 +50,7 @@ export class NRPSService {
 
     const token = await this.getNRPSToken(
       session,
-      'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly',
+      LTI_NRPS_SCOPE_CONTEXT_MEMBERSHIP_READONLY,
     );
 
     const response = await ltiServiceFetch(session.services.nrps.membershipUrl, {
