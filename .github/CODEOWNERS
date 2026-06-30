@@ -1,0 +1,14 @@
+# Security-critical paths — require James's review
+/packages/core/src/ltiTool.ts                @jamesjoplin
+/packages/core/src/services/token.service.ts @jamesjoplin
+/packages/*/src/*Storage.ts                  @jamesjoplin
+/packages/core/src/interfaces/ltiStorage.ts  @jamesjoplin
+/packages/core/src/schemas/lti13/            @jamesjoplin
+
+# Release gate — changesets writes CHANGELOGs only at version time,
+# so requiring review here = your sign-off on every "Version Packages" PR
+**/CHANGELOG.md                              @jamesjoplin
+
+# Governance / CI / release config
+/.github/                                    @jamesjoplin
+/.changeset/config.json                      @jamesjoplin
