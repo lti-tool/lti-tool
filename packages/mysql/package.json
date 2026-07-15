@@ -39,8 +39,8 @@
   "dependencies": {
     "@lti-tool/core": "*",
     "drizzle-orm": "^0.45.2",
-    "lru-cache": "^11.5.1",
-    "mysql2": "^3.22.5"
+    "lru-cache": "^11.5.2",
+    "mysql2": "^3.23.0"
   },
   "peerDependencies": {
     "pino": "^9.9.0"
