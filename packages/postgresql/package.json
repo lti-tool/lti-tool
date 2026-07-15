@@ -40,7 +40,7 @@
   "dependencies": {
     "@lti-tool/core": "*",
     "drizzle-orm": "^0.45.2",
-    "lru-cache": "^11.5.1",
+    "lru-cache": "^11.5.2",
     "postgres": "^3.4.9"
   },
   "peerDependencies": {

@@ -38,10 +38,10 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.1077.0",
-    "@aws-sdk/util-dynamodb": "^3.996.5",
+    "@aws-sdk/client-dynamodb": "^3.1087.0",
+    "@aws-sdk/util-dynamodb": "^3.996.6",
     "@lti-tool/core": "*",
-    "lru-cache": "^11.5.1"
+    "lru-cache": "^11.5.2"
   },
   "peerDependencies": {
     "pino": "^9.9.0"
