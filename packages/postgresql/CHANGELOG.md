@@ -1,5 +1,11 @@
 # @lti-tool/postgresql
 
+## 2.0.1
+
+### Patch Changes
+
+- 59921b6: Apply package security updates
+
 ## 2.0.0
 
 ### Major Changes

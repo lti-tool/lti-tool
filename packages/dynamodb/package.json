@@ -1,6 +1,6 @@
 {
   "name": "@lti-tool/dynamodb",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "DynamoDB storage for LTI 1.3 @lti-tool",
   "keywords": [
     "lti",

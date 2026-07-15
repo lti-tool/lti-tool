@@ -1,5 +1,11 @@
 # @lti-tool/hono
 
+## 1.1.3
+
+### Patch Changes
+
+- 59921b6: Apply package security updates
+
 ## 1.1.2
 
 ### Patch Changes
