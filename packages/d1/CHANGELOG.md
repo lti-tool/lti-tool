@@ -1,5 +1,11 @@
 # @lti-tool/d1
 
+## 1.0.3
+
+### Patch Changes
+
+- 59921b6: Apply package security updates
+
 ## 1.0.2
 
 ### Patch Changes
