@@ -12,5 +12,5 @@
     "ignoreCase": true,
     "groups": ["builtin", "external", "internal", "parent", "sibling", "index", "unknown"]
   },
-  "ignorePatterns": ["**/*.min.js"]
+  "ignorePatterns": ["**/*.min.js", ".changeset/*"]
 }
