@@ -1,4 +1,30 @@
+import {
+  LTI_AGS_SCOPES,
+  LTI_CLAIM_PLATFORM_CONFIGURATION,
+  LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
+  LTI_NRPS_SCOPES,
+} from '../constants.js';
 import type { OpenIDConfiguration } from '../schemas/index.js';
+
+function hasAnySupportedScope(
+  scopesSupported: string[] | undefined,
+  scopes: readonly string[],
+): boolean {
+  if (!scopesSupported) {
+    return false;
+  }
+  return scopes.some((scope) => scopesSupported.includes(scope));
+}
+
+function filterSupportedScopes(
+  scopesSupported: string[] | undefined,
+  scopes: readonly string[],
+): string[] {
+  if (!scopesSupported) {
+    return [];
+  }
+  return scopes.filter((scope) => scopesSupported.includes(scope));
+}
 
 /**
  * Checks if an LTI platform supports Assignment and Grade Services (AGS).
@@ -16,9 +42,7 @@ import type { OpenIDConfiguration } from '../schemas/index.js';
  * ```
  */
 export function hasAGSSupport(config: OpenIDConfiguration): boolean {
-  return (
-    config.scopes_supported?.some((scope) => scope.includes('lti-ags/scope')) ?? false
-  );
+  return hasAnySupportedScope(config.scopes_supported, LTI_AGS_SCOPES);
 }
 
 /**
@@ -37,9 +61,7 @@ export function hasAGSSupport(config: OpenIDConfiguration): boolean {
  * ```
  */
 export function hasNRPSSupport(config: OpenIDConfiguration): boolean {
-  return (
-    config.scopes_supported?.some((scope) => scope.includes('lti-nrps/scope')) ?? false
-  );
+  return hasAnySupportedScope(config.scopes_supported, LTI_NRPS_SCOPES);
 }
 
 /**
@@ -58,10 +80,11 @@ export function hasNRPSSupport(config: OpenIDConfiguration): boolean {
  * ```
  */
 export function hasDeepLinkingSupport(config: OpenIDConfiguration): boolean {
-  const ltiConfig = config['https://purl.imsglobal.org/spec/lti-platform-configuration'];
+  const ltiConfig = config[LTI_CLAIM_PLATFORM_CONFIGURATION];
   return (
-    ltiConfig?.messages_supported?.some((msg) => msg.type === 'LtiDeepLinkingRequest') ??
-    false
+    ltiConfig?.messages_supported?.some(
+      (msg) => msg.type === LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
+    ) ?? false
   );
 }
 
@@ -75,12 +98,10 @@ export function hasDeepLinkingSupport(config: OpenIDConfiguration): boolean {
  * @example
  * ```typescript
  * const agsScopes = getAGSScopes(platformConfig);
- * // Returns: ['https://purl.imsglobal.org/spec/lti-ags/scope/lineitem', ...]
+ * // Returns: [LTI_AGS_SCOPE_LINEITEM, ...]
  * console.log('Available AGS scopes:', agsScopes.join(', '));
  * ```
  */
 export function getAGSScopes(config: OpenIDConfiguration): string[] {
-  return (
-    config.scopes_supported?.filter((scope) => scope.includes('lti-ags/scope')) ?? []
-  );
+  return filterSupportedScopes(config.scopes_supported, LTI_AGS_SCOPES);
 }

@@ -1,6 +1,11 @@
 import type { BaseLogger } from 'pino';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  LTI_AGS_SCOPE_LINEITEM_READONLY,
+  LTI_AGS_SCOPE_RESULT_READONLY,
+  LTI_AGS_SCOPE_SCORE,
+} from '../src/constants.js';
 import type { LTISession, LTIStorage } from '../src/interfaces/index.js';
 import type { ScoreSubmission } from '../src/schemas/lti13/ags/scoreSubmission.schema.js';
 import { AGSService } from '../src/services/ags.service.js';
@@ -84,7 +89,7 @@ const mockSession: LTISession = {
     ags: {
       lineitem: 'https://platform.example.com/api/ags/lineitem/123',
       lineitems: 'https://platform.example.com/api/ags/lineitems',
-      scopes: ['https://purl.imsglobal.org/spec/lti-ags/scope/score'],
+      scopes: [LTI_AGS_SCOPE_SCORE],
     },
   },
 };
@@ -145,7 +150,7 @@ describe('AGSService', () => {
       expect(mockTokenService.getBearerToken).toHaveBeenCalledWith(
         'client123',
         'https://platform.example.com/token',
-        'https://purl.imsglobal.org/spec/lti-ags/scope/score',
+        LTI_AGS_SCOPE_SCORE,
       );
 
       // Verify fetch was called correctly
@@ -239,7 +244,7 @@ describe('AGSService', () => {
       expect(mockTokenService.getBearerToken).toHaveBeenCalledWith(
         'client123',
         'https://platform.example.com/token',
-        'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
+        LTI_AGS_SCOPE_RESULT_READONLY,
       );
       expect(mockFetch).toHaveBeenCalledWith(
         'https://platform.example.com/api/ags/lineitem/123/results',
@@ -316,7 +321,7 @@ describe('AGSService', () => {
       expect(mockTokenService.getBearerToken).toHaveBeenCalledWith(
         'client123',
         'https://platform.example.com/token',
-        'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly',
+        LTI_AGS_SCOPE_LINEITEM_READONLY,
       );
       expect(mockFetch).toHaveBeenCalledWith(
         'https://platform.example.com/api/ags/lineitems?resource_id=resource-1&resource_link_id=resource-link-1&tag=badges&limit=50',

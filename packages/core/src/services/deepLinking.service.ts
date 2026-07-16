@@ -1,6 +1,15 @@
 import { SignJWT } from 'jose';
 import type { BaseLogger } from 'pino';
 
+import {
+  LTI_CLAIM_DEEP_LINKING_CONTENT_ITEMS,
+  LTI_CLAIM_DEEP_LINKING_DATA,
+  LTI_CLAIM_DEPLOYMENT_ID,
+  LTI_CLAIM_MESSAGE_TYPE,
+  LTI_CLAIM_VERSION,
+  LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE,
+  LTI_VERSION_1P3P0,
+} from '../constants.js';
 import type { LTISession } from '../interfaces/ltiSession.js';
 import type { DeepLinkingContentItem } from '../schemas/lti13/deepLinking/contentItem.schema.js';
 import { escapeHtml } from '../utils/htmlEscaping.js';
@@ -85,12 +94,11 @@ export class DeepLinkingService {
       exp: Math.floor(Date.now() / 1000) + 600,
       iat: Math.floor(Date.now() / 1000),
       nonce: crypto.randomUUID(),
-      'https://purl.imsglobal.org/spec/lti/claim/message_type': 'LtiDeepLinkingResponse',
-      'https://purl.imsglobal.org/spec/lti/claim/version': '1.3.0',
-      'https://purl.imsglobal.org/spec/lti/claim/deployment_id':
-        session.platform.deploymentId,
-      'https://purl.imsglobal.org/spec/lti-dl/claim/content_items': contentItems,
-      'https://purl.imsglobal.org/spec/lti-dl/claim/data': deepLinking.data,
+      [LTI_CLAIM_MESSAGE_TYPE]: LTI_MESSAGE_TYPE_DEEP_LINKING_RESPONSE,
+      [LTI_CLAIM_VERSION]: LTI_VERSION_1P3P0,
+      [LTI_CLAIM_DEPLOYMENT_ID]: session.platform.deploymentId,
+      [LTI_CLAIM_DEEP_LINKING_CONTENT_ITEMS]: contentItems,
+      [LTI_CLAIM_DEEP_LINKING_DATA]: deepLinking.data,
     };
 
     return await new SignJWT(payload)

@@ -1,6 +1,7 @@
 import { createRemoteJWKSet, decodeJwt, exportJWK, jwtVerify, SignJWT } from 'jose';
 import type { Logger } from 'pino';
 
+import { LTI_CLAIM_DEPLOYMENT_ID, LTI_CLAIM_TARGET_LINK_URI } from './constants.js';
 import type { JWKS } from './interfaces/jwks.js';
 import type { LTIClient } from './interfaces/ltiClient.js';
 import type { LTIConfig } from './interfaces/ltiConfig.js';
@@ -1028,8 +1029,7 @@ function validateTargetLinkUri(
   payload: LTI13JwtPayload,
   expectedTargetLinkUri: string,
 ): void {
-  const targetLinkUri =
-    payload['https://purl.imsglobal.org/spec/lti/claim/target_link_uri'];
+  const targetLinkUri = payload[LTI_CLAIM_TARGET_LINK_URI];
   // LTI requires this to be the same value passed during login initiation.
   // Keep this as an exact string match; URL normalization can change routing semantics.
   if (targetLinkUri !== expectedTargetLinkUri) {
@@ -1044,7 +1044,7 @@ function formatAudience(audience: LTI13JwtPayload['aud']): string {
 }
 
 function getDeploymentId(payload: Record<string, unknown>): string {
-  const deploymentId = payload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
+  const deploymentId = payload[LTI_CLAIM_DEPLOYMENT_ID];
   // The OIDC login parameter is optional, but the signed LTI message claim is required.
   if (typeof deploymentId !== 'string') {
     throw new Error('No deployment_id in token');
