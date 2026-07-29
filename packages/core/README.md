@@ -32,12 +32,8 @@ const ltiTool = new LTITool({
 });
 
 // Configure your LMS
-const clientId = await ltiTool.addClient({
-  /* ... */
-});
-await ltiTool.addDeployment(clientId, {
-  /* ... */
-});
+const clientId = await ltiTool.addClient({/* ... */});
+await ltiTool.addDeployment(clientId, {/* ... */});
 
 // Handle LTI flow
 const authUrl = await ltiTool.handleLogin(loginParams);
