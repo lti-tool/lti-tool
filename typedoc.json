@@ -33,6 +33,7 @@
     }
   },
   "out": "docs",
+  "projectDocuments": ["docs-src/key-management.md"],
   "name": "lti-tool Documentation",
   "includeVersion": true,
   "githubPages": true,

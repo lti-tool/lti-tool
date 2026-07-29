@@ -32,8 +32,12 @@ const ltiTool = new LTITool({
 });
 
 // Configure your LMS
-const clientId = await ltiTool.addClient({/* ... */});
-await ltiTool.addDeployment(clientId, {/* ... */});
+const clientId = await ltiTool.addClient({
+  /* ... */
+});
+await ltiTool.addDeployment(clientId, {
+  /* ... */
+});
 
 // Handle LTI flow
 const authUrl = await ltiTool.handleLogin(loginParams);
@@ -48,6 +52,7 @@ if the launch ID token contains multiple audiences.
 ## Documentation
 
 - [API Reference](https://docs.lti-tool.dev) - Complete API documentation
+- [Key Management](https://docs.lti-tool.dev/documents/Key_Management.html) - Where the signing key lives, and how to rotate or revoke it
 - [Examples](https://github.com/lti-tool/lti-tool-examples) - (Coming soon) Working examples
 
 ## Security
