@@ -40,7 +40,7 @@
     "@lti-tool/core": "*",
     "drizzle-orm": "^0.45.2",
     "lru-cache": "^11.5.2",
-    "mysql2": "^3.23.0"
+    "mysql2": "^3.23.2"
   },
   "peerDependencies": {
     "pino": "^9.9.0"
