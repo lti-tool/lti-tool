@@ -235,7 +235,7 @@ Production-ready security features
 - **Deployment Verification** - Validates deployment context
 - **Cookie-Free Design** - Works in all iframe contexts, immune to 3rd party cookie restrictions
 
-> **Production Note**: The quick start example uses `crypto.subtle.generateKey()` for simplicity. In production, use proper key management (AWS Parameter Store SecureString, AWS KMS, HashiCorp Vault, etc.).
+> **Production Note**: The quick start example uses `crypto.subtle.generateKey()` for simplicity. In production, store the private key in a secrets manager (AWS Parameter Store SecureString, AWS Secrets Manager, HashiCorp Vault, etc.) and load it at startup. See the [Key Management guide](https://docs.lti-tool.dev/documents/Key_Management.html) for where the key should live and how to rotate or revoke it.
 
 ## Examples (coming soon)
 

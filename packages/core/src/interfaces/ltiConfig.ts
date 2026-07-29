@@ -47,6 +47,22 @@ export interface DynamicRegistrationConfig {
 }
 
 /**
+ * A public key published in the tool's JWKS in addition to the active signing key.
+ *
+ * Entries are publish-only: they are never used to sign anything. Their purpose is
+ * to keep a previous key verifiable during a rotation overlap, or to publish a key
+ * that is signed outside this library.
+ */
+export interface AdditionalPublicKey {
+  /** Public key to publish. Import from PEM with jose's `importSPKI`, or from JWK with `importJWK`. */
+  publicKey: CryptoKey;
+  /** Key identifier for this key. Must be unique across the active key and all other additional keys. */
+  kid: string;
+  /** Algorithm published for this key (defaults to 'RS256') */
+  alg?: string;
+}
+
+/**
  * Configuration object for initializing an LTI Tool instance.
  * Contains cryptographic keys, secrets, and storage adapter.
  */
@@ -56,6 +72,16 @@ export interface LTIConfig {
 
   /** RSA key pair for signing JWTs and providing JWKS endpoint */
   keyPair: CryptoKeyPair;
+
+  /**
+   * Additional public keys to publish in the JWKS alongside `keyPair`'s public key.
+   *
+   * These are publish-only: `keyPair` remains the only signer. Use them to keep a
+   * previous key verifiable while tokens signed with it are still in flight during a
+   * rotation. Each `kid` must be unique across the active key and all additional keys,
+   * and each entry's `alg` defaults to `'RS256'`.
+   */
+  additionalPublicKeys?: AdditionalPublicKey[];
 
   /** Storage adapter for persisting platforms, sessions, and nonces */
   storage: LTIStorage;

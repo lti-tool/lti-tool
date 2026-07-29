@@ -38,8 +38,8 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.1087.0",
-    "@aws-sdk/util-dynamodb": "^3.996.6",
+    "@aws-sdk/client-dynamodb": "^3.1097.0",
+    "@aws-sdk/util-dynamodb": "^3.996.7",
     "@lti-tool/core": "*",
     "lru-cache": "^11.5.2"
   },

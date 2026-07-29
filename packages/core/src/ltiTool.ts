@@ -96,6 +96,8 @@ export class LTITool {
         error: () => {},
       } as unknown as Logger);
 
+    this.validatePublishedKeyIds();
+
     this.tokenService = new TokenService(
       this.config.keyPair,
       this.config.security?.keyId ?? 'main',
@@ -116,6 +118,38 @@ export class LTITool {
         this.config.storage,
         this.config.dynamicRegistration,
         this.logger,
+      );
+    }
+  }
+
+  /**
+   * Rejects configuration that would publish two keys under the same `kid`, which makes
+   * platform key selection nondeterministic. Also warns when additional keys are configured
+   * while the active key is still on the default `kid`.
+   *
+   * @throws {Error} When any published `kid` is duplicated
+   */
+  private validatePublishedKeyIds(): void {
+    const additionalPublicKeys = this.config.additionalPublicKeys ?? [];
+    if (additionalPublicKeys.length === 0) {
+      return;
+    }
+
+    const activeKeyId = this.config.security?.keyId ?? 'main';
+    const seenKeyIds = new Set([activeKeyId]);
+
+    for (const { kid } of additionalPublicKeys) {
+      if (seenKeyIds.has(kid)) {
+        throw new Error(
+          `[LTI] Duplicate key ID '${kid}' in JWKS configuration: every additionalPublicKeys entry must use a kid distinct from the active key ID and from every other additional key.`,
+        );
+      }
+      seenKeyIds.add(kid);
+    }
+
+    if (this.config.security?.keyId === undefined) {
+      this.logger.warn(
+        `[LTI] additionalPublicKeys is configured while the active key ID is still the default '${activeKeyId}'. Set security.keyId to a distinct, deliberate key ID so the active key can be told apart from retired ones on your next rotation.`,
       );
     }
   }
@@ -328,21 +362,34 @@ export class LTITool {
   /**
    * Generates JSON Web Key Set (JWKS) containing the tool's public key for platform verification.
    *
-   * @returns JWKS object with the tool's public key for JWT signature verification
+   * Publishes the active signing key first, followed by any `additionalPublicKeys`
+   * configured for a rotation overlap.
+   *
+   * @returns JWKS object with the tool's public keys for JWT signature verification
    */
   async getJWKS(): Promise<JWKS> {
     try {
       const publicJwk = await exportJWK(this.config.keyPair.publicKey);
-      return {
-        keys: [
-          {
-            ...publicJwk,
-            use: 'sig',
-            alg: 'RS256',
-            kid: this.config.security?.keyId ?? 'main',
-          },
-        ],
-      };
+      const keys: JWKS['keys'] = [
+        {
+          ...publicJwk,
+          use: 'sig',
+          alg: 'RS256',
+          kid: this.config.security?.keyId ?? 'main',
+        },
+      ];
+
+      for (const additionalKey of this.config.additionalPublicKeys ?? []) {
+        const additionalJwk = await exportJWK(additionalKey.publicKey);
+        keys.push({
+          ...additionalJwk,
+          use: 'sig',
+          alg: additionalKey.alg ?? 'RS256',
+          kid: additionalKey.kid,
+        });
+      }
+
+      return { keys };
     } catch (error) {
       throw new Error(`[LTI] JWKS generation failed: ${formatError(error)}`);
     }
