@@ -1,5 +1,13 @@
 # @lti-tool/memory
 
+## 1.1.2
+
+### Patch Changes
+
+- 52a9fd5: version bump for package updates
+- Updated dependencies [52a9fd5]
+  - @lti-tool/core@1.2.1
+
 ## 1.1.1
 
 ### Patch Changes

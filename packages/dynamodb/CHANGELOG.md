@@ -1,5 +1,13 @@
 # @lti-tool/dynamodb
 
+## 2.0.2
+
+### Patch Changes
+
+- 52a9fd5: version bump for package updates
+- Updated dependencies [52a9fd5]
+  - @lti-tool/core@1.2.1
+
 ## 2.0.1
 
 ### Patch Changes

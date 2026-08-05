@@ -1,5 +1,11 @@
 # @lti-tool/core
 
+## 1.2.1
+
+### Patch Changes
+
+- 52a9fd5: version bump for package updates
+
 ## 1.2.0
 
 ### Minor Changes
