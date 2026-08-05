@@ -1,5 +1,13 @@
 # @lti-tool/d1
 
+## 1.0.4
+
+### Patch Changes
+
+- 52a9fd5: version bump for package updates
+- Updated dependencies [52a9fd5]
+  - @lti-tool/core@1.2.1
+
 ## 1.0.3
 
 ### Patch Changes
