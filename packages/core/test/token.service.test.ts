@@ -1,6 +1,7 @@
 import { SignJWT } from 'jose';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { LTI_AGS_SCOPE_SCORE } from '../src/constants.js';
 import { TokenService } from '../src/services/token.service.js';
 
 // Mock fetch globally
@@ -92,7 +93,7 @@ describe('TokenService', () => {
       const result = await tokenService.getBearerToken(
         'client123',
         'https://platform.example.com/token',
-        'https://purl.imsglobal.org/spec/lti-ags/scope/score',
+        LTI_AGS_SCOPE_SCORE,
       );
 
       expect(result).toBe('bearer-token-123');
@@ -117,9 +118,7 @@ describe('TokenService', () => {
         'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
       );
       expect(body.get('client_assertion')).toBe('mock-assertion');
-      expect(body.get('scope')).toBe(
-        'https://purl.imsglobal.org/spec/lti-ags/scope/score',
-      );
+      expect(body.get('scope')).toBe(LTI_AGS_SCOPE_SCORE);
     });
 
     it('throws error when HTTP request fails', async () => {

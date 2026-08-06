@@ -1,5 +1,7 @@
 import * as z from 'zod';
 
+import { LTI_CLAIM_PLATFORM_CONFIGURATION } from '../../../constants.js';
+
 /**
  * Zod schema for LTI platform-specific configuration within OpenID Connect Discovery.
  * Contains LTI-specific metadata about the platform's capabilities and supported features.
@@ -35,7 +37,7 @@ export const ltiPlatformConfigurationSchema = z.object({
  * @property jwks_uri - JSON Web Key Set endpoint for signature verification
  * @property token_endpoint - OAuth 2.0 token endpoint for service access tokens
  * @property scopes_supported - Array of OAuth scopes the platform supports (AGS, NRPS, etc.)
- * @property https://purl.imsglobal.org/spec/lti-platform-configuration - LTI-specific platform metadata
+ * @property LTI_CLAIM_PLATFORM_CONFIGURATION - LTI-specific platform metadata
  */
 export const openIDConfigurationSchema = z
   .object({
@@ -52,8 +54,7 @@ export const openIDConfigurationSchema = z
     claims_supported: z.array(z.string()),
     subject_types_supported: z.array(z.string()),
     authorization_server: z.string().optional(),
-    'https://purl.imsglobal.org/spec/lti-platform-configuration':
-      ltiPlatformConfigurationSchema,
+    [LTI_CLAIM_PLATFORM_CONFIGURATION]: ltiPlatformConfigurationSchema,
   })
   .loose();
 

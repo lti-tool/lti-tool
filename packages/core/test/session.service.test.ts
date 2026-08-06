@@ -1,5 +1,21 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  LTI_AGS_SCOPE_SCORE,
+  LTI_CLAIM_AGS_ENDPOINT,
+  LTI_CLAIM_CONTEXT,
+  LTI_CLAIM_CUSTOM,
+  LTI_CLAIM_DEEP_LINKING_SETTINGS,
+  LTI_CLAIM_DEPLOYMENT_ID,
+  LTI_CLAIM_MESSAGE_TYPE,
+  LTI_CLAIM_NRPS_NAMES_ROLE_SERVICE,
+  LTI_CLAIM_RESOURCE_LINK,
+  LTI_CLAIM_ROLES,
+  LTI_CLAIM_TARGET_LINK_URI,
+  LTI_CLAIM_VERSION,
+  LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
+  LTI_VERSION_1P3P0,
+} from '../src/constants.js';
 import type { LTI13JwtPayload } from '../src/schemas/index.js';
 import { createSession } from '../src/services/session.service.js';
 
@@ -27,13 +43,12 @@ describe('createSession', () => {
       family_name: 'Doe',
       name: 'John Doe',
       email: 'john@example.com',
-      'https://purl.imsglobal.org/spec/lti/claim/message_type': 'LtiResourceLinkRequest',
-      'https://purl.imsglobal.org/spec/lti/claim/version': '1.3.0',
-      'https://purl.imsglobal.org/spec/lti/claim/deployment_id': 'deployment1',
-      'https://purl.imsglobal.org/spec/lti/claim/target_link_uri':
-        'https://tool.example.com/launch',
-      'https://purl.imsglobal.org/spec/lti/claim/roles': [],
-      'https://purl.imsglobal.org/spec/lti/claim/context': {
+      [LTI_CLAIM_MESSAGE_TYPE]: LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
+      [LTI_CLAIM_VERSION]: LTI_VERSION_1P3P0,
+      [LTI_CLAIM_DEPLOYMENT_ID]: 'deployment1',
+      [LTI_CLAIM_TARGET_LINK_URI]: 'https://tool.example.com/launch',
+      [LTI_CLAIM_ROLES]: [],
+      [LTI_CLAIM_CONTEXT]: {
         id: 'context123',
         label: 'CS101',
         title: 'Computer Science 101',
@@ -88,9 +103,7 @@ describe('createSession', () => {
 
   it('correctly identifies instructor role', () => {
     const payload = createMinimalPayload({
-      'https://purl.imsglobal.org/spec/lti/claim/roles': [
-        'http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor',
-      ],
+      [LTI_CLAIM_ROLES]: ['http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor'],
     });
 
     const session = createSession(payload);
@@ -103,9 +116,7 @@ describe('createSession', () => {
 
   it('correctly identifies student role', () => {
     const payload = createMinimalPayload({
-      'https://purl.imsglobal.org/spec/lti/claim/roles': [
-        'http://purl.imsglobal.org/vocab/lis/v2/membership#Learner',
-      ],
+      [LTI_CLAIM_ROLES]: ['http://purl.imsglobal.org/vocab/lis/v2/membership#Learner'],
     });
 
     const session = createSession(payload);
@@ -118,7 +129,7 @@ describe('createSession', () => {
 
   it('correctly identifies admin role', () => {
     const payload = createMinimalPayload({
-      'https://purl.imsglobal.org/spec/lti/claim/roles': [
+      [LTI_CLAIM_ROLES]: [
         'http://purl.imsglobal.org/vocab/lis/v2/institution#Administrator',
       ],
     });
@@ -133,7 +144,7 @@ describe('createSession', () => {
 
   it('handles multiple roles and deduplicates', () => {
     const payload = createMinimalPayload({
-      'https://purl.imsglobal.org/spec/lti/claim/roles': [
+      [LTI_CLAIM_ROLES]: [
         'http://purl.imsglobal.org/vocab/lis/v2/membership#Instructor',
         'http://purl.imsglobal.org/vocab/lis/v2/membership#ContentDeveloper',
         'http://purl.imsglobal.org/vocab/lis/v2/membership#Member',
@@ -149,7 +160,7 @@ describe('createSession', () => {
 
   it('extracts resource link information', () => {
     const payload = createMinimalPayload({
-      'https://purl.imsglobal.org/spec/lti/claim/resource_link': {
+      [LTI_CLAIM_RESOURCE_LINK]: {
         id: 'resource123',
         title: 'Assignment 1',
       },
@@ -165,7 +176,7 @@ describe('createSession', () => {
 
   it('extracts custom parameters', () => {
     const payload = createMinimalPayload({
-      'https://purl.imsglobal.org/spec/lti/claim/custom': {
+      [LTI_CLAIM_CUSTOM]: {
         course_id: 'CS101',
         section: 'A',
       },
@@ -181,10 +192,10 @@ describe('createSession', () => {
 
   it('extracts AGS service information', () => {
     const payload = createMinimalPayload({
-      'https://purl.imsglobal.org/spec/lti-ags/claim/endpoint': {
+      [LTI_CLAIM_AGS_ENDPOINT]: {
         lineitem: 'https://platform.example.com/api/ags/lineitem/123',
         lineitems: 'https://platform.example.com/api/ags/lineitems',
-        scope: ['https://purl.imsglobal.org/spec/lti-ags/scope/score'],
+        scope: [LTI_AGS_SCOPE_SCORE],
       },
     });
 
@@ -194,13 +205,13 @@ describe('createSession', () => {
     expect(session.services?.ags).toEqual({
       lineitem: 'https://platform.example.com/api/ags/lineitem/123',
       lineitems: 'https://platform.example.com/api/ags/lineitems',
-      scopes: ['https://purl.imsglobal.org/spec/lti-ags/scope/score'],
+      scopes: [LTI_AGS_SCOPE_SCORE],
     });
   });
 
   it('extracts NRPS service information', () => {
     const payload = createMinimalPayload({
-      'https://purl.imsglobal.org/spec/lti-nrps/claim/namesroleservice': {
+      [LTI_CLAIM_NRPS_NAMES_ROLE_SERVICE]: {
         context_memberships_url: 'https://platform.example.com/api/nrps/memberships',
         service_versions: ['2.0'],
       },
@@ -217,7 +228,7 @@ describe('createSession', () => {
 
   it('extracts deep linking service information', () => {
     const payload = createMinimalPayload({
-      'https://purl.imsglobal.org/spec/lti-dl/claim/deep_linking_settings': {
+      [LTI_CLAIM_DEEP_LINKING_SETTINGS]: {
         deep_link_return_url: 'https://platform.example.com/deep_links',
         accept_types: ['link', 'file'],
         accept_presentation_document_targets: ['iframe', 'window'],

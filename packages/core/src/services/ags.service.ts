@@ -1,5 +1,11 @@
 import type { BaseLogger } from 'pino';
 
+import {
+  LTI_AGS_SCOPE_LINEITEM,
+  LTI_AGS_SCOPE_LINEITEM_READONLY,
+  LTI_AGS_SCOPE_RESULT_READONLY,
+  LTI_AGS_SCOPE_SCORE,
+} from '../constants.js';
 import type { LTISession } from '../interfaces/ltiSession.js';
 import type { LTIStorage } from '../interfaces/ltiStorage.js';
 import type {
@@ -79,10 +85,7 @@ export class AGSService {
       throw new Error('AGS not available for this session');
     }
 
-    const token = await this.getAGSToken(
-      session,
-      'https://purl.imsglobal.org/spec/lti-ags/scope/score',
-    );
+    const token = await this.getAGSToken(session, LTI_AGS_SCOPE_SCORE);
 
     const scorePayload = {
       userId: score.userId,
@@ -133,10 +136,7 @@ export class AGSService {
       throw new Error('AGS line item not available for this session');
     }
 
-    const token = await this.getAGSToken(
-      session,
-      'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
-    );
+    const token = await this.getAGSToken(session, LTI_AGS_SCOPE_RESULT_READONLY);
 
     const response = await ltiServiceFetch(this.buildResultsUrl(lineItemUrl, options), {
       method: 'GET',
@@ -173,10 +173,7 @@ export class AGSService {
       throw new Error('AGS list line items not available for this session');
     }
 
-    const token = await this.getAGSToken(
-      session,
-      'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly',
-    );
+    const token = await this.getAGSToken(session, LTI_AGS_SCOPE_LINEITEM_READONLY);
 
     const response = await ltiServiceFetch(
       this.buildLineItemsUrl(session.services.ags.lineitems, options),
@@ -218,10 +215,7 @@ export class AGSService {
       throw new Error('AGS line item not available for this session');
     }
 
-    const token = await this.getAGSToken(
-      session,
-      'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem.readonly',
-    );
+    const token = await this.getAGSToken(session, LTI_AGS_SCOPE_LINEITEM_READONLY);
 
     const response = await ltiServiceFetch(lineItemUrl, {
       method: 'GET',
@@ -263,10 +257,7 @@ export class AGSService {
       throw new Error('AGS create line items not available for this session');
     }
 
-    const token = await this.getAGSToken(
-      session,
-      'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
-    );
+    const token = await this.getAGSToken(session, LTI_AGS_SCOPE_LINEITEM);
 
     const response = await ltiServiceFetch(`${session.services.ags.lineitems}`, {
       method: 'POST',
@@ -307,10 +298,7 @@ export class AGSService {
       throw new Error('AGS line item not available for this session');
     }
 
-    const token = await this.getAGSToken(
-      session,
-      'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
-    );
+    const token = await this.getAGSToken(session, LTI_AGS_SCOPE_LINEITEM);
 
     const response = await ltiServiceFetch(session.services.ags.lineitem, {
       method: 'PUT',
@@ -343,10 +331,7 @@ export class AGSService {
       throw new Error('AGS line item not available for this session');
     }
 
-    const token = await this.getAGSToken(
-      session,
-      'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
-    );
+    const token = await this.getAGSToken(session, LTI_AGS_SCOPE_LINEITEM);
 
     const response = await ltiServiceFetch(session.services.ags.lineitem, {
       method: 'DELETE',
