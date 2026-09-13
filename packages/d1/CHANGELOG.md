@@ -1,5 +1,13 @@
 # @lti-tool/d1
 
+## 1.0.5
+
+### Patch Changes
+
+- c43bbe6: Dependency lock updates
+- Updated dependencies [c43bbe6]
+  - @lti-tool/core@1.2.2
+
 ## 1.0.4
 
 ### Patch Changes
