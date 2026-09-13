@@ -1,5 +1,13 @@
 # @lti-tool/postgresql
 
+## 2.0.3
+
+### Patch Changes
+
+- c43bbe6: Dependency lock updates
+- Updated dependencies [c43bbe6]
+  - @lti-tool/core@1.2.2
+
 ## 2.0.2
 
 ### Patch Changes
