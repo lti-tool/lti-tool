@@ -296,15 +296,18 @@ describe('Schema Validation Tests', () => {
       expect(() => LTI13JwtPayloadSchema.parse(invalidPayload)).toThrow();
     });
 
-    it('rejects payload missing required user fields', () => {
-      const invalidPayload = {
+    it('accepts payload when any individual privacy claim is omitted', () => {
+      const payload = {
         iss: 'https://platform.example.com',
         sub: 'user123',
         aud: 'client123',
         exp: Math.floor(Date.now() / 1000) + 300,
         iat: Math.floor(Date.now() / 1000),
         nonce: 'test-nonce',
-        // missing given_name, family_name, name, email
+        given_name: 'John',
+        family_name: 'Doe',
+        name: 'John Doe',
+        email: 'john.doe@university.edu',
         'https://purl.imsglobal.org/spec/lti/claim/message_type':
           'LtiResourceLinkRequest',
         'https://purl.imsglobal.org/spec/lti/claim/version': '1.3.0',
@@ -313,7 +316,11 @@ describe('Schema Validation Tests', () => {
           'https://tool.example.com/content',
       };
 
-      expect(() => LTI13JwtPayloadSchema.parse(invalidPayload)).toThrow();
+      for (const claim of ['given_name', 'family_name', 'name', 'email'] as const) {
+        // Canvas omits the whole claim instead of sending an empty string
+        const parsed = LTI13JwtPayloadSchema.parse({ ...payload, [claim]: undefined });
+        expect(parsed[claim]).toBeUndefined();
+      }
     });
   });
 
