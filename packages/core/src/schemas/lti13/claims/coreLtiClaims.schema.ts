@@ -1,12 +1,23 @@
 import * as z from 'zod';
 
+import {
+  LTI_CLAIM_DEPLOYMENT_ID,
+  LTI_CLAIM_MESSAGE_TYPE,
+  LTI_CLAIM_ROLES,
+  LTI_CLAIM_TARGET_LINK_URI,
+  LTI_CLAIM_VERSION,
+  LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
+  LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
+  LTI_VERSION_1P3P0,
+} from '../../../constants.js';
+
 export const CoreLtiClaimsSchema = z.object({
-  'https://purl.imsglobal.org/spec/lti/claim/message_type': z.union([
-    z.literal('LtiResourceLinkRequest'),
-    z.literal('LtiDeepLinkingRequest'),
+  [LTI_CLAIM_MESSAGE_TYPE]: z.union([
+    z.literal(LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST),
+    z.literal(LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST),
   ]),
-  'https://purl.imsglobal.org/spec/lti/claim/version': z.literal('1.3.0'),
-  'https://purl.imsglobal.org/spec/lti/claim/deployment_id': z.string(),
-  'https://purl.imsglobal.org/spec/lti/claim/target_link_uri': z.url(),
-  'https://purl.imsglobal.org/spec/lti/claim/roles': z.array(z.string()).optional(),
+  [LTI_CLAIM_VERSION]: z.literal(LTI_VERSION_1P3P0),
+  [LTI_CLAIM_DEPLOYMENT_ID]: z.string(),
+  [LTI_CLAIM_TARGET_LINK_URI]: z.url(),
+  [LTI_CLAIM_ROLES]: z.array(z.string()).optional(),
 });

@@ -1,5 +1,10 @@
 import * as z from 'zod';
 
+import {
+  LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
+  LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
+} from '../../../constants.js';
+
 const LTIMessageBaseSchema = z
   .object({
     target_link_uri: z.url().optional(),
@@ -17,7 +22,7 @@ const LTIMessageBaseSchema = z
  * This is the most common LTI message type for regular tool launches.
  */
 const LTIResourceLinkMessageSchema = LTIMessageBaseSchema.extend({
-  type: z.literal('LtiResourceLinkRequest'),
+  type: z.literal(LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST),
 });
 
 /**
@@ -35,7 +40,7 @@ const LTIResourceLinkMessageSchema = LTIMessageBaseSchema.extend({
  * @property custom_parameters - Optional custom parameters for deep linking configuration
  */
 const LTIDeepLinkingMessageSchema = LTIMessageBaseSchema.extend({
-  type: z.literal('LtiDeepLinkingRequest'),
+  type: z.literal(LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST),
   supported_types: z.array(z.string()).optional(),
   supported_media_types: z.array(z.string()).optional(), // e.g., ['image/*', 'video/*']
 }).loose();

@@ -1,5 +1,12 @@
 import type { BaseLogger } from 'pino';
 
+import {
+  LTI_AGS_SCOPE_LINEITEM,
+  LTI_AGS_SCOPE_RESULT_READONLY,
+  LTI_AGS_SCOPE_SCORE,
+  LTI_CLAIM_TOOL_CONFIGURATION,
+  LTI_NRPS_SCOPE_CONTEXT_MEMBERSHIP_READONLY,
+} from '../constants.js';
 import type { DynamicRegistrationConfig } from '../interfaces/ltiConfig.js';
 import type { LTIDynamicRegistrationSession } from '../interfaces/ltiDynamicRegistrationSession.js';
 import type { LTIStorage } from '../interfaces/ltiStorage.js';
@@ -197,8 +204,7 @@ export class DynamicRegistrationService {
       tokenUrl: session.openIdConfiguration.token_endpoint,
     });
 
-    const ltiToolConfig =
-      registrationResponse['https://purl.imsglobal.org/spec/lti-tool-configuration'];
+    const ltiToolConfig = registrationResponse[LTI_CLAIM_TOOL_CONFIGURATION];
     if (ltiToolConfig.deployment_id) {
       await this.storage.addDeployment(clientId, {
         deploymentId: ltiToolConfig.deployment_id,
@@ -246,16 +252,14 @@ export class DynamicRegistrationService {
 
     if (selectedServices?.includes('ags')) {
       scopes.push(
-        'https://purl.imsglobal.org/spec/lti-ags/scope/lineitem',
-        'https://purl.imsglobal.org/spec/lti-ags/scope/result.readonly',
-        'https://purl.imsglobal.org/spec/lti-ags/scope/score',
+        LTI_AGS_SCOPE_LINEITEM,
+        LTI_AGS_SCOPE_RESULT_READONLY,
+        LTI_AGS_SCOPE_SCORE,
       );
     }
 
     if (selectedServices?.includes('nrps')) {
-      scopes.push(
-        'https://purl.imsglobal.org/spec/lti-nrps/scope/contextmembership.readonly',
-      );
+      scopes.push(LTI_NRPS_SCOPE_CONTEXT_MEMBERSHIP_READONLY);
     }
 
     return scopes;
@@ -301,7 +305,7 @@ export class DynamicRegistrationService {
         logo_uri: config.logo,
         scope: scopes.join(' '),
         token_endpoint_auth_method: 'private_key_jwt',
-        'https://purl.imsglobal.org/spec/lti-tool-configuration': {
+        [LTI_CLAIM_TOOL_CONFIGURATION]: {
           domain: new URL(config.url).hostname,
           description: config.description,
           target_link_uri: config.url,
@@ -358,7 +362,7 @@ export class DynamicRegistrationService {
             <dt class="col-sm-3">Client ID:</dt>
             <dd class="col-sm-9"><code>${escapeHtml(registrationResponse.client_id)}</code></dd>
             <dt class="col-sm-3">Deployment ID:</dt>
-            <dd class="col-sm-9"><code>${escapeHtml(registrationResponse['https://purl.imsglobal.org/spec/lti-tool-configuration'].deployment_id || 'default')}</code></dd>
+            <dd class="col-sm-9"><code>${escapeHtml(registrationResponse[LTI_CLAIM_TOOL_CONFIGURATION].deployment_id || 'default')}</code></dd>
           </dl>
         </div>
       </div>

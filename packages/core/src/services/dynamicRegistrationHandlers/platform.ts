@@ -1,5 +1,6 @@
 import type { BaseLogger } from 'pino';
 
+import { LTI_AGS_SCOPE_PREFIX } from '../../constants.js';
 import {
   RegistrationResponseSchema,
   type OpenIDConfiguration,
@@ -71,7 +72,7 @@ export function renderDynamicRegistrationForm(
                     </label>
                     <div class="mt-2 ms-4">
                       <small class="text-muted">OAuth Scopes that will be requested:</small>
-                      <pre class="bg-light p-2 mt-1 small border rounded">${agsScopes.map((scope) => scope.replace('https://purl.imsglobal.org/spec/lti-ags/scope/', '')).join('\n')}</pre>
+                      <pre class="bg-light p-2 mt-1 small border rounded">${agsScopes.map((scope) => scope.replace(LTI_AGS_SCOPE_PREFIX, '')).join('\n')}</pre>
                     </div>
                   </div>
             `

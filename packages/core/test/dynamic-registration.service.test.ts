@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  LTI_CLAIM_PLATFORM_CONFIGURATION,
+  LTI_CLAIM_TOOL_CONFIGURATION,
+  LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
+  LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
+} from '../src/constants.js';
 import type { LTIStorage } from '../src/interfaces/ltiStorage.js';
 import type { DynamicRegistrationForm } from '../src/schemas/lti13/dynamicRegistration/ltiDynamicRegistration.schema.js';
 import { DynamicRegistrationService } from '../src/services/dynamicRegistration.service.js';
@@ -23,10 +29,10 @@ const createOpenIdConfiguration = ({
   id_token_signing_alg_values_supported: ['RS256'],
   claims_supported: ['iss', 'aud'],
   subject_types_supported: ['public', 'pairwise'],
-  'https://purl.imsglobal.org/spec/lti-platform-configuration': {
+  [LTI_CLAIM_PLATFORM_CONFIGURATION]: {
     product_family_code: productFamilyCode,
     version: '26-SNAPSHOT',
-    messages_supported: [{ type: 'LtiResourceLinkRequest' }],
+    messages_supported: [{ type: LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST }],
   },
 });
 
@@ -64,11 +70,11 @@ const createRegistrationResponse = (clientId: string) => ({
   jwks_uri: 'https://lti.local.test/lti/jwks',
   token_endpoint_auth_method: 'private_key_jwt',
   scope: '',
-  'https://purl.imsglobal.org/spec/lti-tool-configuration': {
+  [LTI_CLAIM_TOOL_CONFIGURATION]: {
     domain: 'lti.local.test',
     target_link_uri: 'https://lti.local.test',
     claims: ['iss', 'sub', 'name', 'email'],
-    messages: [{ type: 'LtiResourceLinkRequest' }],
+    messages: [{ type: LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST }],
   },
 });
 
@@ -162,9 +168,9 @@ describe('DynamicRegistrationService', () => {
         new Response(
           JSON.stringify({
             ...createRegistrationResponse('sakai-client-id'),
-            'https://purl.imsglobal.org/spec/lti-tool-configuration': {
+            [LTI_CLAIM_TOOL_CONFIGURATION]: {
               ...createRegistrationResponse('sakai-client-id')[
-                'https://purl.imsglobal.org/spec/lti-tool-configuration'
+                LTI_CLAIM_TOOL_CONFIGURATION
               ],
               deployment_id: '1',
             },
@@ -245,13 +251,12 @@ describe('DynamicRegistrationService', () => {
 
     const fetchCall = (global.fetch as any).mock.calls[0] as [string, RequestInit];
     const requestBody = JSON.parse(fetchCall[1].body as string);
-    const messages =
-      requestBody['https://purl.imsglobal.org/spec/lti-tool-configuration'].messages;
+    const messages = requestBody[LTI_CLAIM_TOOL_CONFIGURATION].messages;
 
     expect(messages).toEqual([
-      { type: 'LtiResourceLinkRequest' },
+      { type: LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST },
       {
-        type: 'LtiDeepLinkingRequest',
+        type: LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
         target_link_uri: 'https://lti.local.test/lti/deep-linking',
         label: 'My LTI Tool',
         placements: ['editor_button'],
@@ -311,45 +316,43 @@ describe('DynamicRegistrationService', () => {
 
     const fetchCall = (global.fetch as any).mock.calls[0] as [string, RequestInit];
     const requestBody = JSON.parse(fetchCall[1].body as string);
-    const messages =
-      requestBody['https://purl.imsglobal.org/spec/lti-tool-configuration'].messages;
+    const messages = requestBody[LTI_CLAIM_TOOL_CONFIGURATION].messages;
 
     expect(requestBody.client_uri).toBe('https://lti.local.test');
     expect(
-      requestBody['https://purl.imsglobal.org/spec/lti-tool-configuration'][
+      requestBody[LTI_CLAIM_TOOL_CONFIGURATION][
         'https://canvas.instructure.com/lti/privacy_level'
       ],
     ).toBe('public');
     expect(
-      requestBody['https://purl.imsglobal.org/spec/lti-tool-configuration'][
+      requestBody[LTI_CLAIM_TOOL_CONFIGURATION][
         'https://canvas.instructure.com/lti/tool_id'
       ],
     ).toBe('canvas-tool-123');
     expect(
-      requestBody['https://purl.imsglobal.org/spec/lti-tool-configuration'][
+      requestBody[LTI_CLAIM_TOOL_CONFIGURATION][
         'https://canvas.instructure.com/lti/vendor'
       ],
     ).toBe('Acme Learning');
-    expect(
-      requestBody['https://purl.imsglobal.org/spec/lti-tool-configuration']
-        .secondary_domains,
-    ).toEqual(['cdn.lti.local.test']);
+    expect(requestBody[LTI_CLAIM_TOOL_CONFIGURATION].secondary_domains).toEqual([
+      'cdn.lti.local.test',
+    ]);
     expect(messages).toEqual([
       {
-        type: 'LtiResourceLinkRequest',
+        type: LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
         label: 'My LTI Tool',
         target_link_uri: 'https://lti.local.test/lti/launch',
         placements: ['course_navigation', 'link_selection'],
       },
       {
-        type: 'LtiDeepLinkingRequest',
+        type: LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
         target_link_uri: 'https://lti.local.test/lti/deep-linking',
         label: 'My LTI Tool',
         placements: ['editor_button'],
         supported_types: ['ltiResourceLink'],
       },
       {
-        type: 'LtiDeepLinkingRequest',
+        type: LTI_MESSAGE_TYPE_DEEP_LINKING_REQUEST,
         target_link_uri: 'https://lti.local.test/lti/deep-linking',
         label: 'My LTI Tool',
         placements: ['assignment_selection'],

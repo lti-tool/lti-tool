@@ -1,5 +1,7 @@
 import * as z from 'zod';
 
+import { LTI_CLAIM_TOOL_CONFIGURATION } from '../../../constants.js';
+
 import { LTIMessagesArraySchema } from './ltiMessages.schema.js';
 
 /**
@@ -44,7 +46,7 @@ const LTIToolConfigurationSchema = z
  * @property logo_uri - Optional URL to the tool's logo image
  * @property scope - Optional OAuth scopes being requested (AGS, NRPS, etc.)
  * @property token_endpoint_auth_method - Always 'private_key_jwt' for LTI 1.3 security
- * @property https://purl.imsglobal.org/spec/lti-tool-configuration - LTI-specific tool configuration
+ * @property LTI_CLAIM_TOOL_CONFIGURATION - LTI-specific tool configuration
  */
 export const ToolRegistrationPayloadSchema = z
   .object({
@@ -59,7 +61,7 @@ export const ToolRegistrationPayloadSchema = z
     logo_uri: z.url().optional(),
     scope: z.string().optional(),
     token_endpoint_auth_method: z.literal('private_key_jwt'),
-    'https://purl.imsglobal.org/spec/lti-tool-configuration': LTIToolConfigurationSchema,
+    [LTI_CLAIM_TOOL_CONFIGURATION]: LTIToolConfigurationSchema,
   })
   .loose();
 

@@ -1,5 +1,7 @@
 import * as z from 'zod';
 
+import { LTI_CLAIM_TOOL_CONFIGURATION } from '../../../constants.js';
+
 import { LTIMessagesArraySchema } from './ltiMessages.schema.js';
 
 /**
@@ -43,7 +45,7 @@ const LTIToolConfigurationResponseSchema = z.object({
  * @property token_endpoint_auth_method - Always 'private_key_jwt' for LTI 1.3
  * @property contacts - Optional array of contact email addresses
  * @property scope - Optional OAuth scopes granted to the tool
- * @property https://purl.imsglobal.org/spec/lti-tool-configuration - LTI-specific tool configuration
+ * @property LTI_CLAIM_TOOL_CONFIGURATION - LTI-specific tool configuration
  */
 export const RegistrationResponseSchema = z.object({
   client_id: z.string(),
@@ -60,8 +62,7 @@ export const RegistrationResponseSchema = z.object({
   token_endpoint_auth_method: z.literal('private_key_jwt'),
   contacts: z.array(z.email()).optional(),
   scope: z.string().optional().or(z.literal('')),
-  'https://purl.imsglobal.org/spec/lti-tool-configuration':
-    LTIToolConfigurationResponseSchema,
+  [LTI_CLAIM_TOOL_CONFIGURATION]: LTIToolConfigurationResponseSchema,
 });
 
 export type RegistrationResponse = z.infer<typeof RegistrationResponseSchema>;

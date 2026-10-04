@@ -2,6 +2,17 @@ import type * as Jose from 'jose'; // import for the vi importActual usage
 import { createRemoteJWKSet, generateKeyPair, jwtVerify } from 'jose';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import {
+  LTI_CLAIM_CONTEXT,
+  LTI_CLAIM_DEPLOYMENT_ID,
+  LTI_CLAIM_MESSAGE_TYPE,
+  LTI_CLAIM_RESOURCE_LINK,
+  LTI_CLAIM_ROLES,
+  LTI_CLAIM_TARGET_LINK_URI,
+  LTI_CLAIM_VERSION,
+  LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
+  LTI_VERSION_1P3P0,
+} from '../src/constants.js';
 import type { LTIConfig, LTIStorage } from '../src/interfaces/index.js';
 import { LTITool } from '../src/ltiTool.js';
 
@@ -213,7 +224,7 @@ describe('LTI Integration Tests', () => {
         iss: 'https://platform.example.com',
         aud: 'client123',
         nonce: 'test-nonce',
-        'https://purl.imsglobal.org/spec/lti/claim/deployment_id': 'deployment1',
+        [LTI_CLAIM_DEPLOYMENT_ID]: 'deployment1',
       };
       const idToken = [
         Buffer.from(JSON.stringify({ alg: 'RS256', kid: 'rotated-kid' })).toString(
@@ -265,14 +276,12 @@ describe('LTI Integration Tests', () => {
         family_name: 'Doe',
         name: 'John Doe',
         email: 'john.doe@university.edu',
-        'https://purl.imsglobal.org/spec/lti/claim/roles': [
-          'http://purl.imsglobal.org/vocab/lis/v2/membership#Learner',
-        ],
-        'https://purl.imsglobal.org/spec/lti/claim/context': {
+        [LTI_CLAIM_ROLES]: ['http://purl.imsglobal.org/vocab/lis/v2/membership#Learner'],
+        [LTI_CLAIM_CONTEXT]: {
           id: 'course123',
           label: 'CS101',
         },
-        'https://purl.imsglobal.org/spec/lti/claim/resource_link': {
+        [LTI_CLAIM_RESOURCE_LINK]: {
           id: 'assignment789',
           title: 'Lab 1',
         },
@@ -488,8 +497,7 @@ describe('LTI Integration Tests', () => {
     it('successfully verifies LTI launch JWT when target_link_uri matches state', async () => {
       const ltiPayload = createMockLTIPayload({
         nonce: 'test-nonce',
-        'https://purl.imsglobal.org/spec/lti/claim/target_link_uri':
-          'https://tool.example.com/content',
+        [LTI_CLAIM_TARGET_LINK_URI]: 'https://tool.example.com/content',
       });
 
       const { SignJWT } = await import('jose');
@@ -511,9 +519,9 @@ describe('LTI Integration Tests', () => {
 
       const validatedPayload = await ltiTool.verifyLaunch(jwt, stateJwt);
 
-      expect(
-        validatedPayload['https://purl.imsglobal.org/spec/lti/claim/target_link_uri'],
-      ).toBe('https://tool.example.com/content');
+      expect(validatedPayload[LTI_CLAIM_TARGET_LINK_URI]).toBe(
+        'https://tool.example.com/content',
+      );
       expect(mockStorage.validateNonce).toHaveBeenCalledWith('test-nonce');
     });
 
@@ -547,8 +555,7 @@ describe('LTI Integration Tests', () => {
     it('rejects LTI launch JWT when target_link_uri differs from state', async () => {
       const ltiPayload = createMockLTIPayload({
         nonce: 'test-nonce',
-        'https://purl.imsglobal.org/spec/lti/claim/target_link_uri':
-          'https://attacker.example.com/content',
+        [LTI_CLAIM_TARGET_LINK_URI]: 'https://attacker.example.com/content',
       });
 
       const { SignJWT } = await import('jose');
@@ -577,8 +584,7 @@ describe('LTI Integration Tests', () => {
     it('rejects LTI launch JWT when target_link_uri has non-identical URL formatting', async () => {
       const ltiPayload = createMockLTIPayload({
         nonce: 'test-nonce',
-        'https://purl.imsglobal.org/spec/lti/claim/target_link_uri':
-          'https://tool.example.com/content/',
+        [LTI_CLAIM_TARGET_LINK_URI]: 'https://tool.example.com/content/',
       });
 
       const { SignJWT } = await import('jose');
@@ -672,7 +678,7 @@ describe('LTI Integration Tests', () => {
 
     it('rejects LTI launch JWT without deployment_id claim', async () => {
       const ltiPayload = createMockLTIPayload();
-      delete ltiPayload['https://purl.imsglobal.org/spec/lti/claim/deployment_id'];
+      delete ltiPayload[LTI_CLAIM_DEPLOYMENT_ID];
 
       const { SignJWT } = await import('jose');
       const jwt = await new SignJWT(ltiPayload)
@@ -705,12 +711,10 @@ describe('LTI Integration Tests', () => {
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 300,
         nonce: 'test-nonce',
-        'https://purl.imsglobal.org/spec/lti/claim/message_type':
-          'LtiResourceLinkRequest',
-        'https://purl.imsglobal.org/spec/lti/claim/version': '1.3.0',
-        'https://purl.imsglobal.org/spec/lti/claim/deployment_id': 'deployment1',
-        'https://purl.imsglobal.org/spec/lti/claim/target_link_uri':
-          'https://tool.example.com/content',
+        [LTI_CLAIM_MESSAGE_TYPE]: LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
+        [LTI_CLAIM_VERSION]: LTI_VERSION_1P3P0,
+        [LTI_CLAIM_DEPLOYMENT_ID]: 'deployment1',
+        [LTI_CLAIM_TARGET_LINK_URI]: 'https://tool.example.com/content',
       };
 
       // Sign with the tool's key instead of platform key (wrong key)
@@ -749,15 +753,11 @@ describe('LTI Integration Tests', () => {
         family_name: 'Doe',
         name: 'John Doe',
         email: 'john.doe@university.edu',
-        'https://purl.imsglobal.org/spec/lti/claim/message_type':
-          'LtiResourceLinkRequest',
-        'https://purl.imsglobal.org/spec/lti/claim/version': '1.3.0',
-        'https://purl.imsglobal.org/spec/lti/claim/deployment_id': 'deployment1',
-        'https://purl.imsglobal.org/spec/lti/claim/target_link_uri':
-          'https://tool.example.com/content',
-        'https://purl.imsglobal.org/spec/lti/claim/roles': [
-          'http://purl.imsglobal.org/vocab/lis/v2/membership#Learner',
-        ],
+        [LTI_CLAIM_MESSAGE_TYPE]: LTI_MESSAGE_TYPE_RESOURCE_LINK_REQUEST,
+        [LTI_CLAIM_VERSION]: LTI_VERSION_1P3P0,
+        [LTI_CLAIM_DEPLOYMENT_ID]: 'deployment1',
+        [LTI_CLAIM_TARGET_LINK_URI]: 'https://tool.example.com/content',
+        [LTI_CLAIM_ROLES]: ['http://purl.imsglobal.org/vocab/lis/v2/membership#Learner'],
       };
 
       const { SignJWT } = await import('jose');
